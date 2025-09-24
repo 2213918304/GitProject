@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生管理系统 - SpringBoot项目测试页面</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入Font Awesome图标 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .api-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .method-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+        }
+        .response-area {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面头部 -->
+    <div class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-graduation-cap me-3"></i>学生管理系统</h1>
+                    <p class="lead mb-0">SpringBoot + MySQL + JPA 项目测试页面</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" onclick="loadAllStudents()">
+                        <i class="fas fa-refresh me-2"></i>刷新数据
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 功能导航 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav class="nav nav-pills nav-fill">
+                    <a class="nav-link active" href="#add-section" onclick="showSection('add-section')">
+                        <i class="fas fa-plus me-2"></i>添加学生
+                    </a>
+                    <a class="nav-link" href="#search-section" onclick="showSection('search-section')">
+                        <i class="fas fa-search me-2"></i>查询学生
+                    </a>
+                    <a class="nav-link" href="#list-section" onclick="showSection('list-section')">
+                        <i class="fas fa-list me-2"></i>学生列表
+                    </a>
+                    <a class="nav-link" href="#stats-section" onclick="showSection('stats-section')">
+                        <i class="fas fa-chart-bar me-2"></i>统计信息
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- 添加学生部分 -->
+        <div id="add-section" class="form-section">
+            <h3 class="section-title"><i class="fas fa-user-plus me-2"></i>添加新学生</h3>
+            <form id="addStudentForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">姓名 *</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label">年龄 *</label>
+                            <input type="number" class="form-control" id="age" min="15" max="30" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">性别 *</label>
+                            <select class="form-select" id="gender" required>
+                                <option value="">请选择性别</option>
+                                <option value="MALE">男</option>
+                                <option value="FEMALE">女</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="major" class="form-label">专业 *</label>
+                            <input type="text" class="form-control" id="major" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="className" class="form-label">班级 *</label>
+                            <input type="text" class="form-control" id="className" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">邮箱 *</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-secondary me-md-2" onclick="clearForm()">
+                        <i class="fas fa-times me-2"></i>清空
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>保存学生
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 查询学生部分 -->
+        <div id="search-section" class="form-section" style="display: none;">
+            <h3 class="section-title"><i class="fas fa-search me-2"></i>查询学生</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card api-card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="badge bg-info method-badge">GET</span>
+                                根据ID查询
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="number" class="form-control" id="searchId" placeholder="请输入学生ID">
+                                <button class="btn btn-outline-primary" onclick="searchById()">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card api-card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="badge bg-info method-badge">GET</span>
+                                根据邮箱查询
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="email" class="form-control" id="searchEmail" placeholder="请输入邮箱">
+                                <button class="btn btn-outline-primary" onclick="searchByEmail()">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card api-card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="badge bg-info method-badge">GET</span>
+                                关键字搜索
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="searchKeyword" placeholder="姓名或邮箱关键字">
+                                <button class="btn btn-outline-primary" onclick="searchByKeyword()">搜索</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card api-card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="badge bg-info method-badge">GET</span>
+                                根据班级查询
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="searchClass" placeholder="请输入班级名称">
+                                <button class="btn btn-outline-primary" onclick="searchByClass()">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card api-card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <span class="badge bg-info method-badge">GET</span>
+                                根据专业查询
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="searchMajor" placeholder="请输入专业名称">
+                                <button class="btn btn-outline-primary" onclick="searchByMajor()">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学生列表部分 -->
+        <div id="list-section" class="form-section" style="display: none;">
+            <h3 class="section-title"><i class="fas fa-list me-2"></i>学生列表管理</h3>
+            <div class="d-flex justify-content-between mb-3">
+                <button class="btn btn-success" onclick="loadAllStudents()">
+                    <i class="fas fa-refresh me-2"></i>刷新列表
+                </button>
+                <div>
+                    <button class="btn btn-warning me-2" onclick="exportStudents()">
+                        <i class="fas fa-download me-2"></i>导出数据
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        <i class="fas fa-trash me-2"></i>清空数据
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>姓名</th>
+                            <th>年龄</th>
+                            <th>性别</th>
+                            <th>专业</th>
+                            <th>班级</th>
+                            <th>邮箱</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">请点击"刷新列表"加载数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 统计信息部分 -->
+        <div id="stats-section" class="form-section" style="display: none;">
+            <h3 class="section-title"><i class="fas fa-chart-bar me-2"></i>统计信息</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-center api-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                            </h5>
+                            <h3 id="totalCount" class="text-primary">-</h3>
+                            <p class="card-text">学生总数</p>
+                            <button class="btn btn-sm btn-outline-primary" onclick="getTotalCount()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center api-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <i class="fas fa-male fa-2x mb-2"></i>
+                            </h5>
+                            <h3 id="maleCount" class="text-success">-</h3>
+                            <p class="card-text">男学生数量</p>
+                            <button class="btn btn-sm btn-outline-success" onclick="getMaleCount()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center api-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">
+                                <i class="fas fa-female fa-2x mb-2"></i>
+                            </h5>
+                            <h3 id="femaleCount" class="text-danger">-</h3>
+                            <p class="card-text">女学生数量</p>
+                            <button class="btn btn-sm btn-outline-danger" onclick="getFemaleCount()">刷新</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center api-card">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i>
+                            </h5>
+                            <h3 id="avgAge" class="text-warning">-</h3>
+                            <p class="card-text">平均年龄</p>
+                            <button class="btn btn-sm btn-outline-warning" onclick="calculateAvgAge()">计算</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API响应显示区域 -->
+        <div class="form-section">
+            <h3 class="section-title"><i class="fas fa-code me-2"></i>API响应结果</h3>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">最新API调用结果：</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearResponse()">清空响应</button>
+            </div>
+            <div id="apiResponse" class="response-area">
+                <p class="text-muted mb-0">暂无API调用记录</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // API基础URL
+        const API_BASE_URL = '/api/students';
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 绑定表单提交事件
+            document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addStudent();
+            });
+            
+            // 加载初始数据
+            getTotalCount();
+        });
+
+        // 显示指定的功能区域
+        function showSection(sectionId) {
+            // 隐藏所有区域
+            const sections = ['add-section', 'search-section', 'list-section', 'stats-section'];
+            sections.forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            
+            // 显示指定区域
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // 更新导航状态
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[href="#${sectionId}"]`).classList.add('active');
+        }
+
+        // 显示API响应
+        function displayResponse(response, url, method = 'GET') {
+            const timestamp = new Date().toLocaleString();
+            const responseHtml = `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">${method}</span>
+                        <span class="text-muted small">${timestamp}</span>
+                    </div>
+                    <div class="fw-bold text-primary mb-2">${url}</div>
+                    <pre class="mb-0"><code>${JSON.stringify(response, null, 2)}</code></pre>
+                </div>
+                <hr>
+            `;
+            
+            const responseArea = document.getElementById('apiResponse');
+            if (responseArea.innerHTML.includes('暂无API调用记录')) {
+                responseArea.innerHTML = responseHtml;
+            } else {
+                responseArea.innerHTML = responseHtml + responseArea.innerHTML;
+            }
+        }
+
+        // 清空响应区域
+        function clearResponse() {
+            document.getElementById('apiResponse').innerHTML = '<p class="text-muted mb-0">暂无API调用记录</p>';
+        }
+
+        // 添加学生
+        async function addStudent() {
+            const studentData = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                major: document.getElementById('major').value,
+                className: document.getElementById('className').value,
+                email: document.getElementById('email').value
+            };
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(studentData)
+                });
+
+                const result = await response.json();
+                displayResponse(result, API_BASE_URL, 'POST');
+
+                if (response.ok) {
+                    alert('学生添加成功！');
+                    clearForm();
+                    getTotalCount(); // 更新统计
+                } else {
+                    alert('添加失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误，请检查后端服务是否启动');
+            }
+        }
+
+        // 清空表单
+        function clearForm() {
+            document.getElementById('addStudentForm').reset();
+        }
+
+        // 根据ID查询学生
+        async function searchById() {
+            const id = document.getElementById('searchId').value;
+            if (!id) {
+                alert('请输入学生ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${id}`);
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/${id}`);
+                
+                if (!response.ok) {
+                    alert('查询失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 根据邮箱查询学生
+        async function searchByEmail() {
+            const email = document.getElementById('searchEmail').value;
+            if (!email) {
+                alert('请输入邮箱');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/email/${encodeURIComponent(email)}`);
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/email/${email}`);
+                
+                if (!response.ok) {
+                    alert('查询失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 关键字搜索
+        async function searchByKeyword() {
+            const keyword = document.getElementById('searchKeyword').value;
+            if (!keyword) {
+                alert('请输入搜索关键字');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/search?keyword=${encodeURIComponent(keyword)}`);
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/search?keyword=${keyword}`);
+                
+                if (!response.ok) {
+                    alert('搜索失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 根据班级查询
+        async function searchByClass() {
+            const className = document.getElementById('searchClass').value;
+            if (!className) {
+                alert('请输入班级名称');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/class/${encodeURIComponent(className)}`);
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/class/${className}`);
+                
+                if (!response.ok) {
+                    alert('查询失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 根据专业查询
+        async function searchByMajor() {
+            const major = document.getElementById('searchMajor').value;
+            if (!major) {
+                alert('请输入专业名称');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/major/${encodeURIComponent(major)}`);
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/major/${major}`);
+                
+                if (!response.ok) {
+                    alert('查询失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 加载所有学生
+        async function loadAllStudents() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                const result = await response.json();
+                displayResponse(result, API_BASE_URL);
+
+                if (response.ok && result.data) {
+                    displayStudentsTable(result.data);
+                } else {
+                    alert('加载失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 显示学生表格
+        function displayStudentsTable(students) {
+            const tbody = document.getElementById('studentTableBody');
+            
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">暂无学生数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(student => `
+                <tr>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.age}</td>
+                    <td>${student.gender === 'MALE' ? '男' : '女'}</td>
+                    <td>${student.major}</td>
+                    <td>${student.className}</td>
+                    <td>${student.email}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${student.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 删除学生
+        async function deleteStudent(id) {
+            if (!confirm('确定要删除这名学生吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                displayResponse(result, `${API_BASE_URL}/${id}`, 'DELETE');
+
+                if (response.ok) {
+                    alert('删除成功！');
+                    loadAllStudents(); // 重新加载列表
+                    getTotalCount(); // 更新统计
+                } else {
+                    alert('删除失败：' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('网络错误');
+            }
+        }
+
+        // 获取学生总数
+        async function getTotalCount() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/count`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('totalCount').textContent = result.data;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // 获取男学生数量
+        async function getMaleCount() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gender/MALE`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('maleCount').textContent = result.data.length;
+                    displayResponse(result, `${API_BASE_URL}/gender/MALE`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // 获取女学生数量
+        async function getFemaleCount() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/gender/FEMALE`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('femaleCount').textContent = result.data.length;
+                    displayResponse(result, `${API_BASE_URL}/gender/FEMALE`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // 计算平均年龄
+        async function calculateAvgAge() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                const result = await response.json();
+                
+                if (response.ok && result.data.length > 0) {
+                    const totalAge = result.data.reduce((sum, student) => sum + student.age, 0);
+                    const avgAge = (totalAge / result.data.length).toFixed(1);
+                    document.getElementById('avgAge').textContent = avgAge;
+                    displayResponse({
+                        success: true,
+                        message: '平均年龄计算成功',
+                        data: avgAge + ' 岁'
+                    }, API_BASE_URL + ' (计算平均年龄)');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // 导出学生数据（简单实现）
+        function exportStudents() {
+            alert('导出功能演示：在实际项目中，这里会导出Excel或CSV文件');
+        }
+
+        // 清空所有数据
+        function clearAllData() {
+            if (confirm('警告：这将删除所有学生数据，确定继续吗？')) {
+                alert('清空功能演示：在实际项目中，这里会调用批量删除API');
+            }
+        }
+    </script>
+</body>
+</html>
